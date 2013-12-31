@@ -1,0 +1,66 @@
+' Restart Reminder - Created on 09-June-2011 by Karthikeyan.Sankarappan
+
+i = 0
+
+for i = 0 to 1000
+
+	strComputer = "."    ' Local computer
+	set bootdatetime = CreateObject("WbemScripting.SWbemDateTime")
+	set objWMI = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
+	set colOS = objWMI.InstancesOf("Win32_OperatingSystem")
+	for each objOS in colOS
+		bootdatetime.Value = objOS.LastBootUpTime
+		bootedon = bootdatetime.GetVarDate
+		
+		dt1 = bootedon
+		dt2 = Now
+		
+		If (isDate(dt1) And IsDate(dt2)) = false Then 
+			TimeSpan = "00:00:00" 
+		End If 
+		 
+ 		seconds = Abs(DateDiff("S", dt1, dt2)) 
+		minutes = seconds \ 60 
+		hours = minutes \ 60 
+		minutes = minutes mod 60 
+		seconds = seconds mod 60 
+		
+		'hours = 122
+
+		if len(hours) = 1 then hours = "0" & hours 
+ 		        TimeSpan = hours & ":" & _ 
+		        RIGHT("00" & minutes, 2) & ":" & _ 
+		        RIGHT("00" & seconds, 2) 
+
+		' condition to reduce CPU utilisation by keeping the script in sleep mode till 5th day
+		if hours < 120 then
+			'Wscript.Echo hours
+			cal = (120 * 60 * 60 * 1000) - (hours * 60 * 60 * 1000)
+			'Wscript.Echo cal
+			Wscript.Sleep cal
+			hours = hours + cal/(60 * 60 *1000)
+			'Wscript.Echo hours			
+		End if
+
+		a = hours mod 24
+		h = hours - a
+		h1 = Round(h/24) 
+		   
+		' condition to give an Information message every 24 hours after 5th day till 7th day ... 5 * 24 = 120 and 7 * 24 = 168
+		if hours >= 120 and hours <168 then 
+			x = msgbox("You Last Booted Your System On " & bootedon & vbcrlf & "System Up Time Is " & hours & " Hrs and " & minutes & " Mins" & vbcrlf & " " & vbcrlf & "Your System Is Not Re-Booted For The Past " & h1 & " Days" & vbcrlf & "Please Restart Your System Now. " & vbcrlf & "Refer Policy 57 - Acceptable Use of Information, Devices, and Technology " & vbcrlf & vbcrlf & "Kitty Hawk-IT Security Team",0+64+4096, "Restart Reminder") 
+			'Wscript.Echo "You Last Booted Your System On " & bootedon & vbcrlf & "System Up Time Is " & hours & " Hrs and " & minutes & " Mins" & vbcrlf & " " & vbcrlf & "Your System Is Not Re-Booted For The Past " & h1 & " Days" & vbcrlf & "Please Restart Your System Now. " & vbcrlf & " " & vbcrlf & "Kitty Hawk-IT Security Team"		
+			Wscript.Sleep 86400000           'milliseconds  1 sec = 1000       and for 24 hr it is 86400000			
+			hours = hours + 86400000/(60 * 60 *1000)
+		End If
+
+		' condition to give a Warning message every 1 hour after 7th day ... 7 * 24 = 168
+		If hours >= 168 then
+			x = msgbox("You Last Booted Your System On " & bootedon & vbcrlf & "System Up Time Is " & hours & " Hrs and " & minutes & " Mins" & vbcrlf & " " & vbcrlf & "Your System Is Not Re-Booted For The Past " & h1 & " Days" & vbcrlf & "Please Restart Your System Now. " & vbcrlf & vbcrlf & "You are Violating Policy 57 - Acceptable Use of Information, Devices, and Technology " & vbcrlf & vbcrlf & "Kitty Hawk-IT Security Team",0+48+4096, "Restart Reminder") 
+			'Wscript.Echo "You Last Booted Your System On " & bootedon & vbcrlf & "System Up Time Is " & hours & " Hrs and " & minutes & " Mins" & vbcrlf & " " & vbcrlf & "Your System Is Not Re-Booted For The Past " & h1 & " Days" & vbcrlf & "Please Restart Your System Now. " & vbcrlf & " " & vbcrlf & "Kitty Hawk-IT Security Team"		
+			Wscript.Sleep 3600000           'milliseconds  1 sec = 1000       and for 1 hr it is 3600000
+			hours = hours + 3600000/(60 * 60 *1000)
+		End if	
+	Next
+'	i = i + 1
+Next
